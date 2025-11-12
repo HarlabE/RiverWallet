@@ -1,4 +1,4 @@
-import 'package:crypto_wallet_app/pages/homepage.dart';
+import 'package:crypto_wallet_app/pages/start_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
           displayColor: Theme.of(context).colorScheme.onPrimary,
         ),
       ),
-      home: Homepage(),
+      home: StartPage(),
     );
   }
 }

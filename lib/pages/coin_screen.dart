@@ -30,11 +30,14 @@ class _CoinScreenState extends State<CoinScreen> {
   int days = 30;
   bool isRefresh = true;
   List<ChartModel>? itemChart;
+  String? errorMessage;
   Future<void> getChart() async {
     String url =
         'https://api.coingecko.com/api/v3/coins/${widget.coin.id}/ohlc?vs_currency=usd&days=$days';
     setState(() {
       isRefresh = true;
+      errorMessage = null;
+      itemChart = null;
     });
     var response = await http.get(
       Uri.parse(url),
@@ -55,16 +58,30 @@ class _CoinScreenState extends State<CoinScreen> {
       setState(() {
         itemChart = modelList;
       });
+    } else if (response.statusCode == 429) {
+      final retryAfter = response.headers['retry-after'];
+      String waitTime = retryAfter != null && int.tryParse(retryAfter) != null
+          ? ' in $retryAfter seconds'
+          : '';
+
+      setState(() {
+        errorMessage =
+            'Rate limit exceeded. You\'ve made too many requests. Please try again$waitTime.';
+        log('Rate limit error: ${errorMessage!}');
+      });
     } else {
+      setState(() {
+        errorMessage =
+            'Failed to load chart data (Status: ${response.statusCode}).';
+      });
       log(response.statusCode.toString());
     }
   }
 
+  List<String> text = [' D ', ' W ', ' M ', '3M', '6M', ' Y '];
+  List<bool> textbool = [false, false, true, false, false, false];
   @override
   Widget build(BuildContext context) {
-    List<String> text = [' D ', ' W ', ' M ', '3M', '6M', ' Y '];
-    List<bool> textbool = [false, false, true, false, false, false];
-
     setDays(String txt) {
       if (txt == ' D ') {
         setState(() {
@@ -93,6 +110,62 @@ class _CoinScreenState extends State<CoinScreen> {
       }
     }
 
+    Widget chartContent;
+
+    if (isRefresh) {
+      chartContent = const Center(child: CircularProgressIndicator());
+    } else if (errorMessage != null) {
+      chartContent = Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 36),
+              const SizedBox(height: 10),
+              Text(
+                errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red, fontSize: 14),
+              ),
+              const SizedBox(height: 10),
+
+              TextButton.icon(
+                onPressed: getChart,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Try Again'),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (itemChart != null && itemChart!.isNotEmpty) {
+      // Display the chart
+      chartContent = SfCartesianChart(
+        trackballBehavior: trackballBehavior,
+        zoomPanBehavior: ZoomPanBehavior(
+          enablePanning: true,
+          zoomMode: ZoomMode.x,
+        ),
+        series: [
+          CandleSeries<ChartModel, int>(
+            enableSolidCandles: true,
+            enableTooltip: true,
+            bullColor: Colors.green,
+            bearColor: Colors.red,
+            dataSource: itemChart!,
+            xValueMapper: (ChartModel sales, _) => sales.time,
+            lowValueMapper: (ChartModel sales, _) => sales.low,
+            highValueMapper: (ChartModel sales, _) => sales.high,
+            openValueMapper: (ChartModel sales, _) => sales.open,
+            closeValueMapper: (ChartModel sales, _) => sales.close,
+            animationDuration: 55,
+          ),
+        ],
+      );
+    } else {
+      chartContent = const Center(child: Text('No chart data available.'));
+    }
     return Scaffold(
       appBar: AppBar(title: Text(widget.coin.symbol.toUpperCase())),
       body: Column(
@@ -135,33 +208,7 @@ class _CoinScreenState extends State<CoinScreen> {
           ),
 
           SizedBox(height: 30),
-          SizedBox(
-            height: 200,
-            child: isRefresh
-                ? Center(child: CircularProgressIndicator())
-                : SfCartesianChart(
-                    trackballBehavior: trackballBehavior,
-                    zoomPanBehavior: ZoomPanBehavior(
-                      enablePanning: true,
-                      zoomMode: ZoomMode.x,
-                    ),
-                    series: [
-                      CandleSeries<ChartModel, int>(
-                        enableSolidCandles: true,
-                        enableTooltip: true,
-                        bullColor: Colors.green,
-                        bearColor: Colors.red,
-                        dataSource: itemChart!,
-                        xValueMapper: (ChartModel sales, _) => sales.time,
-                        lowValueMapper: (ChartModel sales, _) => sales.low,
-                        highValueMapper: (ChartModel sales, _) => sales.high,
-                        openValueMapper: (ChartModel sales, _) => sales.open,
-                        closeValueMapper: (ChartModel sales, _) => sales.close,
-                        animationDuration: 55,
-                      ),
-                    ],
-                  ),
-          ),
+          SizedBox(height: 200, child: chartContent),
           SizedBox(height: 10),
           SizedBox(
             height: 40,
@@ -177,6 +224,7 @@ class _CoinScreenState extends State<CoinScreen> {
                     setState(() {
                       textbool = [false, false, false, false, false, false];
                       textbool[index] = true;
+                      errorMessage = null;
                     });
                     setDays(text[index]);
                     getChart();
