@@ -1,16 +1,18 @@
-# crypto_wallet_app
-
-A new Flutter project.
+# RiverWallet
+This is a Crypto currency wallet app built using coin gecko demo api
 
 ## Getting Started
+clone the repository
+run flutter pub get to terminal,make sure you are in the project directory
 
-This project is a starting point for a Flutter application.
+## Testing
+To test App, run choose a device and enter flutter run in the terminal, make sure you are in the project directory
 
-A few resources to get you started if this is your first Flutter project:
+## App file and Demo
+- [Apk file](https://drive.google.com/file/d/1zA_p_aqv2NW0-HMROddm44Wej2C9kuDD/view?usp=drive_link)
+- [Demo Video](https://drive.google.com/file/d/1PyQpOJR5hHI_xaree6XG1JBmectWbuXI/view?usp=drive_link)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
+### New to flutter
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
