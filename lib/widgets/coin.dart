@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crypto_wallet_app/model/model.dart';
 import 'package:crypto_wallet_app/pages/coin_screen.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,13 @@ class Coin extends StatelessWidget {
       },
       child: Card(
         child: ListTile(
-          leading: Image.network(coin.image, width: screenWidth * 0.1),
+          leading: CachedNetworkImage(
+            imageUrl: coin.image,
+            width: screenWidth * 0.1,
+            height: screenWidth * 0.1,
+            placeholder: (context, url) => const CircularProgressIndicator(),
+            errorWidget: (context, url, error) => const Icon(Icons.error),
+          ),
           title: Text(coin.name),
           subtitle: Text(coin.symbol),
           trailing: Column(

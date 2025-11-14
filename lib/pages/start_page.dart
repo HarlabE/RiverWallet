@@ -69,7 +69,7 @@ class _StartPageState extends State<StartPage>
             const SizedBox(height: 40),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
+                backgroundColor: const Color.fromARGB(255, 170, 70, 210),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 40,
                   vertical: 15,
